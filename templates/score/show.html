@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>查询</title>
+</head>
+<script language="JavaScript" src="/static/js/jquery-3.6.0.min.js"></script>
+<body>
+<form method="post">
+    <h3>
+        当前客户端 {{request.user}}，请上传分数：<input type="text" id="score" name="score" placeholder="可输入范围：1~10000000。"> 分。
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        <input type="submit" value="提交" onclick="sub()"/>
+        <div id="score_err" style="color: red;"></div>
+    </h3>
+</form>
+{% comment %}<div id="table1">
+    <table border="1px" width="300px" cellspacing="0px" align="center">
+        <thead>
+        <tr>
+            <th>排名</th>
+            <th>客户端</th>
+            <th>分数</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for item in count %}
+            <tr>
+                <td>{{forloop.counter}}</td>
+                <td>{{ item.client }}</td>
+                <td>{{ item.score }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<h5>请输入要查询名次范围：第
+    <input type="text" id="start" name="start" placeholder="请输入起始名次，例如:10">
+    至
+    <input type="text" id="end" name="end" placeholder="请输入终止名次，例如:20">名。&nbsp;&nbsp;
+    <input name="submit" id="submit" type="button" value="查询" onclick="return f()"/>
+</h5>
+{% endcomment %}
+
+<div id="table1">
+    <table border="1px" width="300px" cellspacing="0px" align="center">
+        <thead>
+        <tr>
+            <th>排名</th>
+            <th>客户端</th>
+            <th>分数</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for item in context.scores %}
+            <tr>
+                <td>{{ item.ranking }}</td>
+                <td>{{ item.client }}</td>
+                <td>{{ item.score }}</td>
+            </tr>
+        {% endfor %}
+        <tr>
+            <td>{{ uscore.ranking }}</td>
+            <td>{{ user }}</td>
+            <td>{{ uscore.score }}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<h5>请输入要查询名次范围：第
+    <input type="text" id="start" name="start" placeholder="请输入起始名次，例如:10">
+    至
+    <input type="text" id="end" name="end" placeholder="请输入终止名次，例如:20">名。&nbsp;&nbsp;
+    <input name="submit" id="submit" type="button" value="查询" onclick="return f()"/>
+</h5>
+<div id="start_err" style="color: red;"></div>
+<div id="end_err" style="color: red;"></div>
+<div id="table2" style="display: none">
+    <table border="1px" width="300px" cellspacing="0px" align="center">
+        <thead>
+        <tr>
+            <th>排名</th>
+            <th>客户端</th>
+            <th>分数</th>
+        </tr>
+        </thead>
+
+        <tbody id="tbody2"></tbody>
+        <tr>
+            <td>{{ uscore.ranking }}</td>
+            <td>{{ user }}</td>
+            <td>{{ uscore.score }}</td>
+        </tr>
+    </table>
+</div>
+<a href="/logout/"><input name="" type="button" value="退出"/></a>
+
+<script type="text/javascript">
+    function sub() {
+        var score = $('#score').val();
+        var flag = true;
+        if (score < 1 || score > 10000000) {
+            $('#score_err').text('分数不符合规范！');
+            flag = false;
+        }
+        if (flag) {
+            $.ajax({
+                url: '/upload/',
+                data: {'score': score},
+                type: 'POST',
+                success: function (result) {
+                    alert(result.status)
+                }
+            })
+        }
+        return flag;
+    }
+</script>
+
+
+<script type="text/javascript">
+    var context2;
+
+    function f() {
+        var start = $('#start').val();
+        var end = $('#end').val();
+        var flag = true;
+        if (start < 0) {
+            $('#start_err').text('起始名次不支持负数！');
+            flag = false;
+        }
+        if (end < 0) {
+            $('#end_err').text('终止名次不支持负数！');
+            flag = false;
+        }
+        if (flag) {
+            $.ajax({
+                url: '/show',
+                data: {'start': start, 'end': end},
+                type: 'POST',
+                success: function (result) {
+                    if (result['status']=='ok'){
+                    $('#table1').hide();
+                    $('#table2').show();
+                    context2 = result['context'];
+                    $("#tbody2").empty();
+                    $.each(context2['scores'], function (index, item) {
+                        $('#tbody2').append('<tr><td>' + item['ranking'] + '</td><td>' +
+                            item['client'] + '</td><td>' + item['score'] + '</td></tr>');
+                    });
+                    }else{
+                        alert('请输入合法的名次！名次为数值型且为整数。')
+                    }
+                },
+
+            })
+        }
+        return flag;
+    }
+</script>
+</body>
+</html>
